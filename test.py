@@ -9,4 +9,4 @@ def main_f():
 
 
 if __name__ == "__main__":
-    app.run(port=8080, host="korali.lol")
+    app.run(port=8080, host="")
