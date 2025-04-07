@@ -8,6 +8,8 @@ nlp = spacy.load("en_core_web_sm")
 #db_session.global_init("Main.db")
 def search_word(word, aim_token=None, trf=None):
     session = db_session.create_session()
+    if session is None:
+        return False
     lemma = nlp(word)[0].lemma_
     word_obj = session.query(Word).filter(Word.eng.ilike(lemma)).first()
     if word_obj is not None:
