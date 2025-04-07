@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8">
+    <title>{% block title %}Вокабулятор{% endblock %}</title>
+    <style>
+      body {
+        font-family: sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f9f9f9;
+      }
+
+      .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background-color: #4a90e2;
+        color: white;
+        padding: 15px 30px;
+      }
+
+      .header a {
+        color: white;
+        text-decoration: none;
+      }
+
+      .header h1 {
+        margin: 0;
+        font-size: 24px;
+      }
+
+      .account-button {
+        background-color: white;
+        color: #4a90e2;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-weight: bold;
+      }
+
+      .content {
+        padding: 40px 30px;
+        text-align: center;
+      }
+
+      .start-button {
+        margin-top: 30px;
+        padding: 20px 40px;
+        font-size: 22px;
+        background-color: #4a90e2;
+        color: white;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+      }
+
+      .start-button:hover {
+        background-color: #357ac8;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <a href="/"><h1>Вокабулятор</h1></a>
+      <form action="/account" method="get">
+        <button class="account-button" type="submit">Аккаунт</button>
+      </form>
+    </div>
+
+    <div class="content">
+      {% block content %}
+      <h2>Готов начать учить новые слова?</h2>
+  <form action="/start" method="post">
+    <button class="start-button" type="submit">Начать</button>
+  </form>
+      {% endblock %}
+    </div>
+  </body>
+</html>
