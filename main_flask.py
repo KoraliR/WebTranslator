@@ -85,4 +85,5 @@ def toggle_theme():
 if __name__ == "__main__":
     #expire_at = Api.make_tokens.start_make_token()
     db_session.global_init("db/Main.db")
-    app.run(port=8080, host="127.0.0.1")
+    app.run(ssl_context=('cert.pem', 'key.pem'), port=4567, host="korali.lol")
+    #app.run(port=8080, host="127.0.0.1")
