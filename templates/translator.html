@@ -1,32 +1,156 @@
-{%extends "start.html"%}
+{% extends "start.html" %}
+{% block title %}Перевод{% endblock %}
+
 {% block content %}
-  <h2>Введите слово для перевода</h2>
+  <style>
+    .translate-container {
+      max-width: 600px;
+      margin: 0 auto;
+      text-align: center;
+      padding-top: 40px;
+      background-color: var(--card-bg);
+      color: var(--text-color);
+      padding: 40px;
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.6);
+    }
 
-  <form action="/translate" method="post" style="margin-top: 30px;">
-    <input
-      type="text"
-      name="word"
-      placeholder="Слово..."
-      required
-      style="
-        width: 300px;
-        padding: 12px 20px;
-        font-size: 18px;
-        border: 1px solid #ccc;
-        border-radius: 8px;
-        text-align: center;
-      "
-    >
+    .translate-input {
+      width: 100%;
+      padding: 14px;
+      font-size: 18px;
+      border: 2px solid var(--input-border);
+      border-radius: 10px;
+      text-align: center;
+      background-color: var(--input-bg);
+      color: var(--text-color);
+      box-shadow: inset 1px 1px 5px rgba(0, 0, 0, 0.2);
+    }
 
-    <br>
+    .translate-button {
+      margin-top: 25px;
+      padding: 14px 30px;
+      font-size: 18px;
+      border: none;
+      border-radius: 10px;
+      background-color: var(--accent-green);
+      color: white;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
 
-    <button
-      type="submit"
-      class="start-button"
-      style="margin-top: 20px; padding: 12px 25px; font-size: 18px;"
-    >
-      Узнать перевод
-    </button>
-  </form>
+    .translate-button:hover {
+      background-color: var(--accent-green-hover);
+    }
+
+    .error-message {
+      margin-top: 20px;
+      color: white;
+      background-color: #d32f2f;
+      padding: 12px;
+      border-radius: 8px;
+      font-weight: bold;
+    }
+
+    .translated-box {
+      margin-top: 30px;
+      padding: 20px;
+      background-color: var(--translated-bg);
+      border-radius: 10px;
+      color: var(--translated-text);
+      font-size: 20px;
+    }
+
+    .add-button {
+      background-color: #2196F3;
+      color: white;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .add-button:hover {
+      background-color: #1976D2;
+    }
+
+    .auth-warning {
+      font-size: 18px;
+      color: #ffcc80;
+      background-color: #4e342e;
+      padding: 15px;
+      border-radius: 8px;
+    }
+
+    /* Theme Variables */
+    :root {
+      --text-color: #000000;
+      --card-bg: #ffffff;
+      --input-bg: #f0f0f0;
+      --input-border: #ccc;
+      --accent-green: #4CAF50;
+      --accent-green-hover: #45a049;
+      --translated-bg: #e0f7fa;
+      --translated-text: #00695c;
+    }
+
+    [data-theme="dark"] {
+      --text-color: #f5f5f5;
+      --card-bg: #1e1e1e;
+      --input-bg: #2e2e2e;
+      --input-border: #555;
+      --accent-green: #4CAF50;
+      --accent-green-hover: #388E3C;
+      --translated-bg: #263238;
+      --translated-text: #80cbc4;
+    }
+  </style>
+
+  <div class="translate-container">
+    {% if flag_registration %}
+      <h2 style="font-size: 28px; margin-bottom: 20px;">Введите слово для перевода</h2>
+
+      <form action="/translate" method="post">
+        <input type="text" name="word" placeholder="Слово..." required class="translate-input">
+
+        <button type="submit" class="translate-button">
+          Узнать перевод
+        </button>
+      </form>
+
+      {% if error_flag %}
+        <div class="error-message">
+          {% if error_code == "less_2" %}
+            В слове должно быть хотя бы два символа!
+          {% elif error_code == "not_char" %}
+            Только латинские буквы!
+          {% elif error_code == "punct" %}
+            Без спец. символов!
+          {% endif %}
+        </div>
+      {% endif %}
+
+      {% if flag_translated %}
+        <div class="translated-box">
+          Перевод: {{ translated_text }}
+        </div>
+
+        <form action="/add_to_dictionary" method="post" style="margin-top: 20px;">
+          <input type="hidden" name="word" value="{{ word }}">
+          <input type="hidden" name="translation" value="{{ translated_text }}">
+          <button type="submit" class="add-button">
+            Добавить в словарь
+          </button>
+        </form>
+      {% endif %}
+
+    {% else %}
+      <p class="auth-warning">
+        Вначале пройдите регистрацию или войдите в аккаунт
+      </p>
+    {% endif %}
+  </div>
 {% endblock %}
 

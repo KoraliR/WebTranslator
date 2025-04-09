@@ -15,4 +15,4 @@ def search_word(word, aim_token=None, trf=None):
     if word_obj is not None:
         return word_obj.ru
     else:
-        return api_worker.make_request_translator(word, aim_token, translator_folder=trf)
+        return api_worker.make_request_translator(word)
