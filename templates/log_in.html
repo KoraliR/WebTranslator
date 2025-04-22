@@ -1,6 +1,6 @@
 {% extends "start.html" %}
 
-{% block title %}Регистрация - Вокабулятор{% endblock %}
+{% block title %}Аутентификация - Вокабулятор{% endblock %}
 
 {% block content %}
   <style>
@@ -16,7 +16,7 @@
       box-shadow: 0 0 10px rgba(0, 0, 0, 0.6);
     }
 
-    .login-input, .password-input, .confirm-password-input {
+    .login-input, .password-input {
       width: auto;
       padding: 10px;
       font-size: 16px;
@@ -32,7 +32,7 @@
       margin-right: auto;
     }
 
-    .reg-button {
+    .auth-button, .reg-button {
       display: block;
       width: auto;
       margin: 10px auto; /* Уменьшен отступ */
@@ -46,8 +46,17 @@
       transition: background-color 0.3s ease;
     }
 
-    .reg-button:hover {
+    .reg-button {
+      background-color: transparent;
+      color: var(--accent-green);
+    }
+
+    .auth-button:hover, .reg-button:hover {
       background-color: var(--accent-green-hover);
+    }
+
+    .reg-button:hover {
+      color: white;
     }
 
     .error-message {
@@ -57,6 +66,21 @@
       padding: 12px;
       border-radius: 8px;
       font-weight: bold;
+    }
+
+    .add-button {
+      background-color: #2196F3;
+      color: white;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .add-button:hover {
+      background-color: #1976D2;
     }
 
     /* Theme Variables */
@@ -86,29 +110,21 @@
   </style>
 
   <div class="auth-container">
-    <h2 style="font-size: 28px; margin-bottom: 20px;">Регистрация</h2>
+    <h2 style="font-size: 28px; margin-bottom: 20px;">Вход в систему</h2>
 
-    <form action="/registration" method="post">
+    <form action="/log_in" method="post">
       <input type="text" name="login" placeholder="Логин..." required class="login-input">
       <input type="password" name="password" placeholder="Пароль..." required class="password-input">
-      <input type="password" name="password1" placeholder="Повторите пароль..." required class="confirm-password-input">
-      <button type="submit" class="reg-button">Зарегистрироваться</button>
+      <button type="submit" class="auth-button">Войти</button>
+      <button type="button" class="reg-button" onclick="window.location.href='/registration'">Зарегистрироваться</button>
     </form>
 
     {% if error_flag %}
       <div class="error-message">
-        {% if error_code == "taken" %}
-            Пользователь с таким логином уже существует.
-        {% elif error_code == "too_short_log" %}
-            Логин должен содержать минимум 2 символа.
-        {% elif error_code == "too_short" %}
-            Пароль должен содержать не менее 8 символов.
-        {% elif error_code == "no_digit" %}
-            В пароле должны быть использована минимум 1 цифра.
-        {% elif error_code == "no_alpha" %}
-            В пароле должна быть использована минимум одна буква.
-        {% elif error_code == "diffrent" %}
-            Пароли не совпадают.
+        {% if error_code == "unexist" %}
+          Пользователя с таким логином не существует.
+        {% elif error_code == "uncor_pass" %}
+          Неверный пароль!
         {% endif %}
       </div>
     {% endif %}

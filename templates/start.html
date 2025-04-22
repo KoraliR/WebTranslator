@@ -89,8 +89,12 @@
     <div class="header">
       <a href="/"><h1>Вокабулятор</h1></a>
       <div style="display: flex; align-items: center;">
-        <form action="/account" method="get" style="margin: 0;">
-          <button class="account-button" type="submit">Аккаунт</button>
+        <form action="/log_in" method="get" style="margin: 0;">
+          {% if flag_registration %}
+            <button class="account-button" type="submit">{{login}}</button>
+          {% else %}
+            <button class="account-button" type="submit">Войти</button>
+          {% endif %}
         </form>
         <form action="/toggle_theme" method="post" style="margin: 0;">
           <button class="theme-toggle" type="submit" title="Сменить тему">
