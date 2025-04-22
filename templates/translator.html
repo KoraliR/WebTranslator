@@ -109,7 +109,6 @@
   </style>
 
   <div class="translate-container">
-    {% if flag_registration %}
       <h2 style="font-size: 28px; margin-bottom: 20px;">Введите слово для перевода</h2>
 
       <form action="/translate" method="post">
@@ -136,7 +135,7 @@
         <div class="translated-box">
           Перевод: {{ translated_text }}
         </div>
-
+          {% if flag_registration %}
         <form action="/add_to_dictionary" method="post" style="margin-top: 20px;">
           <input type="hidden" name="word" value="{{ word }}">
           <input type="hidden" name="translation" value="{{ translated_text }}">
@@ -144,13 +143,17 @@
             Добавить в словарь
           </button>
         </form>
-      {% endif %}
+          {% else %}
+              <form action="/registration" method="get" style="margin-top: 20px;">
+          <input type="hidden" name="word" value="{{ word }}">
+          <input type="hidden" name="translation" value="{{ translated_text }}">
+          <button type="submit" class="add-button">
+            Добавить в словарь
+          </button>
+              </form>>
 
-    {% else %}
-      <p class="auth-warning">
-        Вначале пройдите регистрацию или войдите в аккаунт
-      </p>
-    {% endif %}
+      {% endif %}
+  {% endif %}
   </div>
 {% endblock %}
 

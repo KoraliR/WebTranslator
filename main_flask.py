@@ -56,14 +56,17 @@ def set_default_theme():
     global login
     if "theme" not in session:
         session["theme"] = "light"
-    flag_registration = False
-    login = ''
+    if "flag_registration" not in session:
+        session["flag_registration"] = False
+        session["login"] = ""
 
 
 @app.route("/")
 def hi_page():
-    global flag_registration, login
+    flag_registration = session.get("flag_registration")
+    login = session.get("login")
     theme = session.get("theme")
+    print(flag_registration)
     return render_template("start.html", flag_registration=flag_registration, theme=theme, login=login)
 
 @app.route("/account")
@@ -72,49 +75,59 @@ def login_page():
 
 @app.route("/registration", methods=['POST', 'GET'])
 def registration_page():
-    global flag_registration, login
+    flag_registration = session.get("flag_registration")
     theme = session.get("theme")
     if request.method == "POST":
+        if flag_registration:
+            return redirect(url_for("hi_page"))
         login = request.form["login"]
         password = request.form['password']
         password1 = request.form['password1']
         result_check_login_and_password_r = check_login_and_password_reg(login, password, password1)
         if result_check_login_and_password_r[0]:
             for_db.append_user(login, password)
-            flag_registration = True 
+            session["flag_registration"] = True
+            session["login"] = login
             return render_template("start.html", flag_registration=flag_registration, login=login, theme=theme)
         else:
             return render_template("registration.html", error_flag=True, error_code=result_check_login_and_password_r[-1], theme=theme, login=login)
-    return render_template("registration.html", theme=theme, login=login)
+    if flag_registration:
+        return redirect(url_for("hi_page"))
+    return render_template("registration.html", theme=theme, flag_registration=flag_registration)
 
 @app.route("/log_in", methods=['POST', 'GET'])
 def log_in():
-    global flag_registration, login
+    flag_registration = session.get("flag_registration")
+    login = session.get("login")
     theme = session.get("theme")
     if request.method == "POST":
         login = request.form["login"]
         password = request.form['password']
         result_check_login_and_password = check_login_and_password_auth(login, password)
         if result_check_login_and_password[0]:
-            flag_registration = True
+            session["flag_registration"] = True
+            session["login"] = login
             return render_template("start.html", flag_registration=flag_registration, login=login, theme=theme)
         else:
             return render_template("log_in.html", error_flag=True, error_code=result_check_login_and_password[-1], theme=theme, login=login)
+    if flag_registration:
+        return redirect(url_for("hi_page"))
     return render_template("log_in.html", theme=theme, login=login)
 
 @app.route("/translate", methods=['POST', 'GET'])
 def translate():
-    global flag_registration, login
+    flag_registration = session.get("flag_registration")
+    login = session.get("login")
     theme = session.get("theme")
     if request.method == "POST":
         text = request.form["word"]
         result_check_word = check_word(text)
         if result_check_word[0]:
             translate = for_db.search_word(text)
-            return render_template("translator.html", flag_registration=True, flag_translated=True, translated_text=translate, theme=theme, login=login)
+            return render_template("translator.html", flag_registration=flag_registration, flag_translated=True, translated_text=translate, theme=theme, login=login)
         else:
-            return render_template("translator.html", flag_registration=True, error_flag=True, login=login, error_code=result_check_word[-1], theme=theme)
-    return render_template("translator.html", flag_registration=True, login=login, theme=theme)
+            return render_template("translator.html", flag_registration=flag_registration, error_flag=True, login=login, error_code=result_check_word[-1], theme=theme)
+    return render_template("translator.html", flag_registration=flag_registration, login=login, theme=theme)
 #error_flag, error_code, flag_translated, translated_text
 @app.route("/test")
 def test():
@@ -131,7 +144,7 @@ def toggle_theme():
         session["theme"] = "light"
     elif current_theme == "light":
         session["theme"] = "dark"
-    return redirect(request.referrer or url_for("/"))
+    return redirect(request.referrer or url_for(hi_page))
 
 
 

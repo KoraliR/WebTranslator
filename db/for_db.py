@@ -36,3 +36,9 @@ def append_user(login, password):
     new_user.set_password(password)
     session.add(new_user)
     session.commit()
+
+def add_word_to_db(lemma, ru):
+    session = db_session.create_session()
+    new_word = Word(eng=lemma, ru=ru)
+    session.add(new_word)
+    session.commit()
