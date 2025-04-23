@@ -20,8 +20,6 @@ def search_word(word, aim_token=None, trf=None):
     if word_obj is not None:
         return word_obj.ru
     else:
-        return api_worker.make_request_translator(word)
-
         translate = api_worker.make_request_translator(word)
         add_word_to_db(lemma, translate)
         return translate
@@ -77,3 +75,28 @@ def get_random_word_with_options(used_ids=None):
         'correct_translation': correct_translation,
         'options': options
     }
+
+
+def get_word_id(word):
+    session = db_session.create_session()
+    word_id = session.query(Word.id).filter(Word.eng == word).first()
+    return word_id
+
+
+def add_word_user_dict(login, word):
+    session = db_session.create_session()
+    user = session.query(User).filter(User.user == login).first()
+    word_id = str(get_word_id(word)[0])
+    if user.users_words is None:
+        user.users_words = word_id + ";"
+    else:
+        user_list = user.users_words
+        user_list = user_list.split(";")[:-1]
+        if word_id in user_list:
+            return False
+        else:
+            user_list.append(word_id)
+            user_list = ";".join(user_list) + ";"
+            user.users_words = user_list
+    session.commit()
+    return True

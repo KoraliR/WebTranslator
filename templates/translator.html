@@ -132,6 +132,15 @@
       {% endif %}
 
       {% if flag_translated %}
+          {% if word_added %}
+  <div class="translated-box" style="background-color: #c8e6c9; color: #2e7d32;">
+    Слово успешно добавлено в ваш словарь!
+  </div>
+{% elif word_exists %}
+  <div class="translated-box" style="background-color: #ffcdd2; color: #c62828;">
+    Это слово уже есть в вашем словаре.
+  </div>
+{% endif %}
         <div class="translated-box">
           Перевод: {{ translated_text }}
         </div>
