@@ -169,6 +169,7 @@ def toggle_theme():
         session["theme"] = "dark"
     return redirect(request.referrer or url_for(hi_page))
 
+
 @app.route('/add_to_dictionary', methods=["POST"])
 def add_to_dict():
     flag_registration = session.get("flag_registration")
