@@ -8,30 +8,11 @@ from string import ascii_letters
 from string import punctuation
 import re
 
-import threading
-import time
-from datetime import datetime
-import os, json
+
 
 app = Flask(__name__)
 app.secret_key = 'supersecretkey'
 
-def monitor_token():
-    while True:
-        try:
-            path = os.path.join(os.getcwd(), "Api", "aim_tokens", "aim_token_trans.json")
-            with open(path, "r") as f:
-                obj = json.loads(f.read())
-                expire_str = obj["expiresAt"]
-                expire_time = datetime.fromisoformat(expire_str)
-                now = datetime.utcnow()
-                if (expire_time - now).total_seconds() < 300:
-                    print("Обновление токена...")
-                    Api.make_tokens.start_make_token(flag=True)
-        except Exception as e:
-            print("Ошибка при проверке токена:", e)
-
-        time.sleep(60)  # проверять каждую минуту
 
 def check_word(word):
     if len(word) < 2:
@@ -211,5 +192,4 @@ def add_to_dict():
 if __name__ == "__main__":
     expire_at = Api.make_tokens.start_make_token()
     db_session.global_init("db/Main.db")
-    threading.Thread(target=monitor_token, daemon=True).start()
     app.run(port=8080, host="127.0.0.1")
