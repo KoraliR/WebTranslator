@@ -22,6 +22,10 @@ def search_word(word, aim_token=None, trf=None):
     else:
         return api_worker.make_request_translator(word)
 
+        translate = api_worker.make_request_translator(word)
+        add_word_to_db(lemma, translate)
+        return translate
+    
 def get_users():
     session = db_session.create_session()
     return session.query(User.user).all()
