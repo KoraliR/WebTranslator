@@ -16,7 +16,9 @@ def search_word(word, aim_token=None, trf=None):
     if word_obj is not None:
         return word_obj.ru
     else:
-        return api_worker.make_request_translator(word)
+        translate = api_worker.make_request_translator(word)
+        add_word_to_db(lemma, translate)
+        return translate
     
 def get_users():
     session = db_session.create_session()
