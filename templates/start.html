@@ -51,7 +51,10 @@
       }
 
       .account-button,
-      .theme-toggle {
+      .auth1-button,
+      .theme-toggle,
+      .learning-button,
+      .translate1-button {
         background-color: var(--button-bg);
         color: var(--button-text);
         border: none;
@@ -89,13 +92,21 @@
     <div class="header">
       <a href="/"><h1>Вокабулятор</h1></a>
       <div style="display: flex; align-items: center;">
-        <form action="/log_in" method="get" style="margin: 0;">
-          {% if flag_registration %}
-            <button class="account-button" type="submit">{{login}}</button>
-          {% else %}
-            <button class="account-button" type="submit">Войти</button>
-          {% endif %}
+        <form action="/translate" method="get" style="margin: 0;">
+          <button class="translate1-button" type="submit">Переводчик</button>
         </form>
+        <form action="/learning" method="get" style="margin: 0;">
+          <button class="learning-button" type="submit">Заучивание слов</button>
+        </form>
+        {% if flag_registration %}
+          <form action="/account" method="get" style="margin: 0;">
+            <button class="account-button" type="submit">{{login}}</button>
+          </form>
+        {% else %}
+          <form action="/log_in" method="get" style="margin: 0;">
+            <button class="auth1-button" type="submit">Войти</button>
+          </form>
+        {% endif %}
         <form action="/toggle_theme" method="post" style="margin: 0;">
           <button class="theme-toggle" type="submit" title="Сменить тему">
             {% if theme == 'light' %}🌙{% else %}☀️{% endif %}

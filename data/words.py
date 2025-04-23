@@ -7,3 +7,4 @@ class Word(SqlAlchemyBase):
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
     eng = sqlalchemy.Column(sqlalchemy.String)
     ru = sqlalchemy.Column(sqlalchemy.String)
+    

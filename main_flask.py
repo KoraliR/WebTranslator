@@ -71,7 +71,30 @@ def hi_page():
 
 @app.route("/account")
 def login_page():
+    print(1)
     return render_template("account.html")
+
+@app.route("/learning")
+def learning():
+    flag_registration = session.get("flag_registration")
+    login = session.get("login")
+    theme = session.get("theme")
+
+    # Генерируем список случайных слов
+    words_list = []
+    used_ids = set()
+    for _ in range(10):  # например, 10 слов за сессию
+        word_data = for_db.get_random_word_with_options(used_ids)
+        if word_data:
+            used_ids.add(word_data['id'])  # Добавляем id, чтобы не повторялись
+            words_list.append(word_data)
+
+    return render_template('learning.html',
+                           words=words_list,
+                           flag_registration=flag_registration,
+                           theme=theme,
+                           login=login)
+
 
 @app.route("/registration", methods=['POST', 'GET'])
 def registration_page():
