@@ -8,94 +8,111 @@
     <div class="options-field" id="options-field"></div>
 </div>
 
-<div class="score-container">
-    <div class="score" id="correct">Верно: 0</div>
-    <div class="score" id="incorrect">Неверно: 0</div>
-    <div class="score" id="skipped">Пропущено: 0</div>
-    <button class="next-button" onclick="nextWord()">Далее</button>
-    <button class="exit-button" onclick="exitGame()">Выход</button>
+<div class="score-container" id="score-container">
+    <div class="score correct" id="correct">Верно: 0</div>
+    <div class="score incorrect" id="incorrect">Неверно: 0</div>
+    <div class="score skipped" id="skipped">Пропущено: 0</div>
 </div>
 
-<div id="end-message" style="display:none; margin-top:20px; font-size:24px; color:var(--text-color); text-align:center;">
-    Все слова пройдены! Отличная работа!
+<div class="button-container" id="button-container">
+    <button class="next-button" onclick="nextWord()" id="next-button">Далее</button>
+    <button class="exit-button" onclick="exitGame()" id="exit-button" style="display:none;">Выйти</button>
+</div>
+
+<div class="finished-message" id="finished-message" style="display:none;">
+    <h2>Вы прошли все слова!</h2>
 </div>
 
 <script>
     let wordList = {{ words|tojson }};
     let currentWordIndex = 0;
-    let correctCount = 0;
-    let incorrectCount = 0;
-    let skippedCount = 0;
-    let userAnswered = false;
+    let correctAnswers = 0;
+    let incorrectAnswers = 0;
+    let skippedAnswers = 0;
+    let answered = false;
 
-    function loadWord() {
-        const current = wordList[currentWordIndex];
-        if (!current) {
-            document.getElementById('end-message').style.display = 'block';
-            document.getElementById('word-field').style.display = 'none';
-            document.getElementById('options-field').style.display = 'none';
-            document.querySelector('.next-button').style.display = 'none';
-            return;
-        }
-
-        userAnswered = false;
-
-        document.getElementById('word-field').textContent = current.word;
-
+    function loadWord(word, options, correct_translation) {
+        const wordField = document.getElementById('word-field');
         const optionsField = document.getElementById('options-field');
+
+        wordField.textContent = word;
         optionsField.innerHTML = '';
 
-        current.options.forEach(optionText => {
-            const option = document.createElement('div');
-            option.className = 'option';
-            option.textContent = optionText;
-            option.onclick = () => checkAnswer(option, current.correct_translation);
-            optionsField.appendChild(option);
+        options.forEach(option => {
+            const optionDiv = document.createElement('div');
+            optionDiv.className = 'option';
+            optionDiv.textContent = option;
+            optionDiv.onclick = () => checkAnswer(optionDiv, correct_translation);
+            optionsField.appendChild(optionDiv);
         });
+
+        answered = false;
     }
 
-    function checkAnswer(option, correctTranslation) {
-        if (userAnswered) return;
+    function checkAnswer(optionDiv, correct_translation) {
+        if (answered) return;
 
-        if (option.textContent === correctTranslation) {
-            option.classList.add('correct');
-            correctCount++;
+        if (optionDiv.textContent === correct_translation) {
+            optionDiv.classList.add('correct');
+            correctAnswers++;
         } else {
-            option.classList.add('incorrect');
-            const options = document.querySelectorAll('.option');
-            options.forEach(opt => {
-                if (opt.textContent === correctTranslation) {
+            optionDiv.classList.add('incorrect');
+            // Подсветить правильный вариант
+            document.querySelectorAll('.option').forEach(opt => {
+                if (opt.textContent === correct_translation) {
                     opt.classList.add('correct');
                 }
             });
-            incorrectCount++;
+            incorrectAnswers++;
         }
 
         updateScore();
-        userAnswered = true;
+        answered = true;
     }
 
     function nextWord() {
-        if (!userAnswered) {
-            skippedCount++;
+        if (!answered) {
+            skippedAnswers++;
             updateScore();
         }
 
         currentWordIndex++;
-        loadWord();
+
+        if (currentWordIndex >= wordList.length) {
+            finishGame();
+        } else {
+            const current = wordList[currentWordIndex];
+            loadWord(current.word, current.options, current.correct_translation);
+        }
+    }
+
+    function finishGame() {
+        document.getElementById('word-field').style.display = 'none';
+        document.getElementById('options-field').style.display = 'none';
+        document.getElementById('button-container').style.display = 'flex';
+        document.getElementById('next-button').style.display = 'none';
+        document.getElementById('finished-message').style.display = 'block';
+        document.getElementById('exit-button').style.display = 'inline-block';
     }
 
     function updateScore() {
-        document.getElementById('correct').textContent = `Верно: ${correctCount}`;
-        document.getElementById('incorrect').textContent = `Неверно: ${incorrectCount}`;
-        document.getElementById('skipped').textContent = `Пропущено: ${skippedCount}`;
+        document.getElementById('correct').textContent = `Верно: ${correctAnswers}`;
+        document.getElementById('incorrect').textContent = `Неверно: ${incorrectAnswers}`;
+        document.getElementById('skipped').textContent = `Пропущено: ${skippedAnswers}`;
     }
 
     function exitGame() {
-        window.location.href = '/';
+        window.location.href = '/'; // Перенаправление на главную
     }
 
-    loadWord();
+    // Старт
+    if (wordList.length < 4) {
+        document.getElementById('word-field').textContent = 'Недостаточно слов для игры!';
+        document.getElementById('next-button').style.display = 'none';
+    } else {
+        const current = wordList[currentWordIndex];
+        loadWord(current.word, current.options, current.correct_translation);
+    }
 </script>
 
 <style>
@@ -109,15 +126,15 @@
 
     .word-field {
         width: 400px;
-        height: 200px;
-        background-color: var(--card-bg, #f0f0f0);
+        height: 150px;
+        background-color: var(--card-bg);
         border: 1px solid #ccc;
         border-radius: 10px;
         display: flex;
         justify-content: center;
         align-items: center;
         font-size: 24px;
-        color: var(--text-color, #333);
+        color: var(--text-color);
     }
 
     .options-field {
@@ -128,17 +145,17 @@
 
     .option {
         width: 400px;
-        height: 60px;
-        background-color: var(--card-bg, #f0f0f0);
+        height: 50px;
+        background-color: var(--card-bg);
         border: 1px solid #ccc;
         border-radius: 10px;
         display: flex;
         justify-content: center;
         align-items: center;
         font-size: 18px;
-        color: var(--text-color, #333);
+        color: var(--text-color);
         cursor: pointer;
-        transition: background-color 0.3s;
+        transition: background-color 0.3s, color 0.3s;
     }
 
     .option.correct {
@@ -154,33 +171,39 @@
     .score-container {
         display: flex;
         justify-content: center;
-        align-items: center;
         gap: 20px;
         margin-top: 20px;
-        flex-wrap: wrap;
     }
 
     .score {
         font-size: 18px;
+        font-weight: bold;
     }
 
-    #correct {
+    .correct {
         color: #4caf50;
     }
 
-    #incorrect {
+    .incorrect {
         color: #f44336;
     }
 
-    #skipped {
-        color: gray;
+    .skipped {
+        color: #9e9e9e;
+    }
+
+    .button-container {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+        margin-top: 20px;
     }
 
     .next-button,
     .exit-button {
         padding: 10px 20px;
-        background-color: #007bff; /* Синий фон */
-        color: #ffffff;
+        background-color: #007bff;
+        color: #fff;
         border: none;
         border-radius: 5px;
         cursor: pointer;
@@ -190,8 +213,14 @@
 
     .next-button:hover,
     .exit-button:hover {
-        background-color: #0056b3; /* Более темно-синий */
-        color: #ffffff;
+        background-color: #0056b3;
+    }
+
+    .finished-message {
+        margin-top: 20px;
+        text-align: center;
+        color: var(--text-color);
     }
 </style>
+
 {% endblock %}
