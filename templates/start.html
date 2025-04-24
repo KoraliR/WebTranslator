@@ -99,9 +99,9 @@
           <button class="learning-button" type="submit">Заучивание слов</button>
         </form>
         {% if flag_registration %}
-          <form action="/account" method="get" style="margin: 0;">
-            <button class="account-button" type="submit">{{login}}</button>
-          </form>
+          <a href="/account">
+            <button class="account-button" type="button">{{ login }}</button>
+          </a>
         {% else %}
           <form action="/log_in" method="get" style="margin: 0;">
             <button class="auth1-button" type="submit">Войти</button>

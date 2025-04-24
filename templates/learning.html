@@ -4,121 +4,131 @@
 
 {% block content %}
 <div class="game-container">
-    <div class="word-field" id="word-field"></div>
-    <div class="options-field" id="options-field"></div>
-</div>
+    {% if not_logged_in %}
+        <div class="message">Сначала войдите в аккаунт.</div>
+    {% elif words is not defined %}
+        <div class="message">Произошла неизвестная ошибка.</div>
+    {% elif words|length < 4 %}
+        <div class="message">Недостаточно слов для игры.</div>
+    {% else %}
+        <div class="word-field" id="word-field"></div>
+        <div class="options-field" id="options-field"></div>
 
-<div class="score-container" id="score-container">
-    <div class="score correct" id="correct">Верно: 0</div>
-    <div class="score incorrect" id="incorrect">Неверно: 0</div>
-    <div class="score skipped" id="skipped">Пропущено: 0</div>
-</div>
+        <div class="score-container" id="score-container">
+            <div class="score correct" id="correct">Верно: 0</div>
+            <div class="score incorrect" id="incorrect">Неверно: 0</div>
+            <div class="score skipped" id="skipped">Пропущено: 0</div>
+        </div>
 
-<div class="button-container" id="button-container">
-    <button class="next-button" onclick="nextWord()" id="next-button">Далее</button>
-    <button class="exit-button" onclick="exitGame()" id="exit-button" style="display:none;">Выйти</button>
-</div>
+        <div class="button-container" id="button-container">
+            <button class="next-button" onclick="nextWord()" id="next-button">Далее</button>
+            <button class="exit-button" onclick="exitGame()" id="exit-button" style="display:none;">Выйти</button>
+        </div>
 
-<div class="finished-message" id="finished-message" style="display:none;">
-    <h2>Вы прошли все слова!</h2>
-</div>
+        <div class="finished-message" id="finished-message" style="display:none;">
+            <h2>Вы прошли все слова!</h2>
+        </div>
 
-<script>
-    let wordList = {{ words|tojson }};
-    let currentWordIndex = 0;
-    let correctAnswers = 0;
-    let incorrectAnswers = 0;
-    let skippedAnswers = 0;
-    let answered = false;
+        <script>
+            let wordList = {{ words|tojson }};
+            let currentWordIndex = 0;
+            let correctAnswers = 0;
+            let incorrectAnswers = 0;
+            let skippedAnswers = 0;
+            let answered = false;
 
-    function loadWord(word, options, correct_translation) {
-        const wordField = document.getElementById('word-field');
-        const optionsField = document.getElementById('options-field');
+            function loadWord(word, options, correct_translation) {
+                const wordField = document.getElementById('word-field');
+                const optionsField = document.getElementById('options-field');
 
-        wordField.textContent = word;
-        optionsField.innerHTML = '';
+                wordField.textContent = word;
+                optionsField.innerHTML = '';
 
-        options.forEach(option => {
-            const optionDiv = document.createElement('div');
-            optionDiv.className = 'option';
-            optionDiv.textContent = option;
-            optionDiv.onclick = () => checkAnswer(optionDiv, correct_translation);
-            optionsField.appendChild(optionDiv);
-        });
+                options.forEach(option => {
+                    const optionDiv = document.createElement('div');
+                    optionDiv.className = 'option';
+                    optionDiv.textContent = option;
+                    optionDiv.onclick = () => checkAnswer(optionDiv, correct_translation);
+                    optionsField.appendChild(optionDiv);
+                });
 
-        answered = false;
-    }
+                answered = false;
+            }
 
-    function checkAnswer(optionDiv, correct_translation) {
-        if (answered) return;
+            function checkAnswer(optionDiv, correct_translation) {
+                if (answered) return;
 
-        if (optionDiv.textContent === correct_translation) {
-            optionDiv.classList.add('correct');
-            correctAnswers++;
-        } else {
-            optionDiv.classList.add('incorrect');
-            // Подсветить правильный вариант
-            document.querySelectorAll('.option').forEach(opt => {
-                if (opt.textContent === correct_translation) {
-                    opt.classList.add('correct');
+                if (optionDiv.textContent === correct_translation) {
+                    optionDiv.classList.add('correct');
+                    correctAnswers++;
+                } else {
+                    optionDiv.classList.add('incorrect');
+                    document.querySelectorAll('.option').forEach(opt => {
+                        if (opt.textContent === correct_translation) {
+                            opt.classList.add('correct');
+                        }
+                    });
+                    incorrectAnswers++;
                 }
-            });
-            incorrectAnswers++;
-        }
 
-        updateScore();
-        answered = true;
-    }
+                updateScore();
+                answered = true;
+            }
 
-    function nextWord() {
-        if (!answered) {
-            skippedAnswers++;
-            updateScore();
-        }
+            function nextWord() {
+                if (!answered) {
+                    skippedAnswers++;
+                    updateScore();
+                }
 
-        currentWordIndex++;
+                currentWordIndex++;
 
-        if (currentWordIndex >= wordList.length) {
-            finishGame();
-        } else {
-            const current = wordList[currentWordIndex];
-            loadWord(current.word, current.options, current.correct_translation);
-        }
-    }
+                if (currentWordIndex >= wordList.length) {
+                    finishGame();
+                } else {
+                    const current = wordList[currentWordIndex];
+                    loadWord(current.word, current.options, current.correct_translation);
+                }
+            }
 
-    function finishGame() {
-        document.getElementById('word-field').style.display = 'none';
-        document.getElementById('options-field').style.display = 'none';
-        document.getElementById('button-container').style.display = 'flex';
-        document.getElementById('next-button').style.display = 'none';
-        document.getElementById('finished-message').style.display = 'block';
-        document.getElementById('exit-button').style.display = 'inline-block';
-    }
+            function finishGame() {
+                document.getElementById('word-field').style.display = 'none';
+                document.getElementById('options-field').style.display = 'none';
+                document.getElementById('button-container').style.display = 'flex';
+                document.getElementById('next-button').style.display = 'none';
+                document.getElementById('finished-message').style.display = 'block';
+                document.getElementById('exit-button').style.display = 'inline-block';
+            }
 
-    function updateScore() {
-        document.getElementById('correct').textContent = `Верно: ${correctAnswers}`;
-        document.getElementById('incorrect').textContent = `Неверно: ${incorrectAnswers}`;
-        document.getElementById('skipped').textContent = `Пропущено: ${skippedAnswers}`;
-    }
+            function updateScore() {
+                document.getElementById('correct').textContent = `Верно: ${correctAnswers}`;
+                document.getElementById('incorrect').textContent = `Неверно: ${incorrectAnswers}`;
+                document.getElementById('skipped').textContent = `Пропущено: ${skippedAnswers}`;
+            }
 
-    function exitGame() {
-        window.location.href = '/'; // Перенаправление на главную
-    }
+            function exitGame() {
+                window.location.href = '/';
+            }
 
-    // Старт
-    if (wordList.length < 4) {
-        document.getElementById('word-field').textContent = 'Недостаточно слов для игры!';
-        document.getElementById('next-button').style.display = 'none';
-    } else {
-        const current = wordList[currentWordIndex];
-        loadWord(current.word, current.options, current.correct_translation);
-    }
-</script>
+            if (wordList.length >= 4) {
+                const current = wordList[currentWordIndex];
+                loadWord(current.word, current.options, current.correct_translation);
+            }
+        </script>
+    {% endif %}
+</div>
 
 <style>
+    .message {
+        font-size: 20px;
+        text-align: center;
+        margin-top: 40px;
+        color: var(--text-color);
+    }
+
     .game-container {
         display: flex;
-        justify-content: center;
+        flex-direction: column;
         align-items: center;
         gap: 20px;
         margin: 20px 0;
@@ -128,7 +138,6 @@
         width: 400px;
         height: 150px;
         background-color: var(--card-bg);
-        border: 1px solid #ccc;
         border-radius: 10px;
         display: flex;
         justify-content: center;
@@ -147,7 +156,6 @@
         width: 400px;
         height: 50px;
         background-color: var(--card-bg);
-        border: 1px solid #ccc;
         border-radius: 10px;
         display: flex;
         justify-content: center;
@@ -180,17 +188,9 @@
         font-weight: bold;
     }
 
-    .correct {
-        color: #4caf50;
-    }
-
-    .incorrect {
-        color: #f44336;
-    }
-
-    .skipped {
-        color: #9e9e9e;
-    }
+    .correct { color: #4caf50; }
+    .incorrect { color: #f44336; }
+    .skipped { color: #9e9e9e; }
 
     .button-container {
         display: flex;
@@ -222,5 +222,4 @@
         color: var(--text-color);
     }
 </style>
-
 {% endblock %}

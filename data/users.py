@@ -8,7 +8,7 @@ class User(SqlAlchemyBase):
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True, unique=True, autoincrement=True)
     user = sqlalchemy.Column(sqlalchemy.String, unique=True)
     password_hash = sqlalchemy.Column(sqlalchemy.String)
-    users_words = sqlalchemy.Column(sqlalchemy.String)
+    user_words = sqlalchemy.Column(sqlalchemy.String)
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
     def check_password(self, password):

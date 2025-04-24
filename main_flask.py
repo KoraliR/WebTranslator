@@ -3,11 +3,15 @@ from flask import render_template, request, flash, redirect, session, url_for
 
 import Api.make_tokens
 from db import for_db
-from data import db_session, users
+from data import db_session, users,words
 from string import ascii_letters
 from string import punctuation
 import re
+from data.words import UserWord, Word
+from data.users import User
+from flask_sqlalchemy import SQLAlchemy
 
+db = SQLAlchemy()
 
 app = Flask(__name__)
 app.secret_key = 'supersecretkey'
@@ -69,10 +73,92 @@ def hi_page():
     print(flag_registration)
     return render_template("start.html", flag_registration=flag_registration, theme=theme, login=login)
 
+# @app.route("/account")
+# def login_page():
+#     flag_registration = session.get("flag_registration")
+#     login = session.get("login")
+#     id = session.get("id")
+#     print(login, id)
+#     theme = session.get("theme")
+#     words = for_db.get_users_words()
+#     return render_template("account.html", user_id=id, flag_registration=flag_registration, theme=theme, username=login, words=words)
+
+
+
 @app.route("/account")
-def login_page():
-    print(1)
-    return render_template("account.html")
+def account():
+    theme = session.get("theme", "light")
+    flag_registration = session.get("flag_registration", False)
+    user_id = session.get("user_id")
+    login = session.get("login", "")
+
+    print("Account page — session user_id:", user_id)
+
+    if not user_id:
+        return redirect("/log_in")
+
+    db_sess = db_session.create_session()
+    user = db_sess.query(User).get(user_id)
+
+    user_word_list = []
+    if user.user_words:
+        word_engs = [w.strip() for w in user.user_words.split(',') if w.strip()]
+        words = db_sess.query(Word).filter(Word.eng.in_(word_engs)).all()
+        user_word_list = words
+
+    return render_template(
+        "account.html",
+        theme=theme,
+        flag_registration=flag_registration,
+        user_words=user_word_list,
+        user_id=user.id,
+        login=user.user
+    )
+
+@app.route('/delete_word', methods=['POST'])
+def delete_word():
+    user_id = session.get("user_id")
+    if not user_id:
+        return redirect('/log_in')
+
+    word_eng = request.form.get('word_eng')
+    db_sess = db_session.create_session()
+    user = db_sess.query(User).get(user_id)
+
+    if user and user.user_words:
+        word_list = [w.strip() for w in user.user_words.split(',') if w.strip()]
+        if word_eng in word_list:
+            word_list.remove(word_eng)
+            user.user_words = ",".join(word_list)
+            db_sess.commit()
+
+    return redirect('/account')
+
+
+
+@app.route('/delete_account')
+def delete_account():
+    if not session.get('flag_registration'):
+        return redirect('/log_in')
+
+    user_login = session.get('login')
+    db_sess = db_session.create_session()
+    user = db_sess.query(users.User).filter(users.User.user == user_login).first()
+
+    if user:
+        # Удалим связанные данные, если нужно (например, слова, если есть привязка)
+        db_sess.delete(user)
+        db_sess.commit()
+
+    session.clear()
+    return redirect('/log_in')
+
+@app.route("/logout")
+def logout():
+    session.clear()  # очищает все данные из сессии
+    return redirect("/")
+
+
 
 @app.route("/learning")
 def learning():
@@ -80,62 +166,87 @@ def learning():
     login = session.get("login")
     theme = session.get("theme")
 
-    # Генерируем список случайных слов
+    if not flag_registration or not login:
+        return render_template("learning.html", not_logged_in=True, theme=theme)
+
     words_list = []
     used_ids = set()
-    for _ in range(10):  # например, 10 слов за сессию
-        word_data = for_db.get_random_word_with_options(used_ids)
+    for _ in range(10):
+        word_data = for_db.get_user_random_word_with_options(login, used_ids)
         if word_data:
-            used_ids.add(word_data['id'])  # Добавляем id, чтобы не повторялись
+            used_ids.add(word_data['id'])
             words_list.append(word_data)
 
-    return render_template('learning.html',
+    return render_template("learning.html",
                            words=words_list,
                            flag_registration=flag_registration,
+                           login=login,
                            theme=theme,
-                           login=login)
+                           not_logged_in=False)
+
+
 
 
 @app.route("/registration", methods=['POST', 'GET'])
 def registration_page():
-    flag_registration = session.get("flag_registration")
     theme = session.get("theme")
     if request.method == "POST":
-        if flag_registration:
-            return redirect(url_for("hi_page"))
         login = request.form["login"]
         password = request.form['password']
         password1 = request.form['password1']
+
         result_check_login_and_password_r = check_login_and_password_reg(login, password, password1)
         if result_check_login_and_password_r[0]:
             for_db.append_user(login, password)
             session["flag_registration"] = True
             session["login"] = login
-            return render_template("start.html", flag_registration=flag_registration, login=login, theme=theme)
+
+            # получить user_id после добавления
+            db_sess = db_session.create_session()
+            user = db_sess.query(users.User).filter(users.User.user == login).first()
+            if user:
+                session["user_id"] = user.id
+
+            return redirect(url_for("hi_page"))
         else:
-            return render_template("registration.html", error_flag=True, error_code=result_check_login_and_password_r[-1], theme=theme, login=login)
-    if flag_registration:
+            return render_template("registration.html",
+                                   error_flag=True,
+                                   flag_registration=False,
+                                   error_code=result_check_login_and_password_r[-1],
+                                   theme=theme,
+                                   login=login)
+    
+    if session.get("flag_registration"):
         return redirect(url_for("hi_page"))
-    return render_template("registration.html", theme=theme, flag_registration=flag_registration)
+    return render_template("registration.html", theme=theme, flag_registration=False, login=None)
 
 @app.route("/log_in", methods=['POST', 'GET'])
 def log_in():
-    flag_registration = session.get("flag_registration")
-    login = session.get("login")
     theme = session.get("theme")
     if request.method == "POST":
         login = request.form["login"]
-        password = request.form['password']
-        result_check_login_and_password = check_login_and_password_auth(login, password)
-        if result_check_login_and_password[0]:
-            session["flag_registration"] = True
-            session["login"] = login
-            return render_template("start.html", flag_registration=flag_registration, login=login, theme=theme)
+        password = request.form["password"]
+
+        result = check_login_and_password_auth(login, password)
+
+        if result[0]:  # Успешная авторизация
+            db_sess = db_session.create_session()
+            user = db_sess.query(User).filter(User.user == login).first()
+
+            if user:
+                session["flag_registration"] = True
+                session["login"] = login
+                session["user_id"] = user.id  # <<< ВАЖНО
+                print("✅ Установлен user_id:", user.id)
+                return redirect("/account")
+            else:
+                print("❌ Пользователь не найден в БД")
+                return render_template("log_in.html", error_flag=True, error_code="Пользователь не найден", theme=theme)
+
         else:
-            return render_template("log_in.html", error_flag=True, error_code=result_check_login_and_password[-1], theme=theme, login=login)
-    if flag_registration:
-        return redirect(url_for("hi_page"))
-    return render_template("log_in.html", theme=theme, login=login)
+            return render_template("log_in.html", error_flag=True, error_code=result[-1], theme=theme)
+
+    return render_template("log_in.html", theme=theme)
 
 @app.route("/translate", methods=['POST', 'GET'])
 def translate():
