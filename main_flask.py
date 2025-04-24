@@ -13,9 +13,9 @@ from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
 
+
 app = Flask(__name__)
 app.secret_key = 'supersecretkey'
-
 
 
 def check_word(word):
@@ -258,7 +258,7 @@ def translate():
         result_check_word = check_word(text)
         if result_check_word[0]:
             translate = for_db.search_word(text)
-            return render_template("translator.html", flag_registration=flag_registration, flag_translated=True, translated_text=translate, theme=theme, login=login)
+            return render_template("translator.html", flag_registration=flag_registration, flag_translated=True, translated_text=translate, theme=theme, login=login, word=text)
         else:
             return render_template("translator.html", flag_registration=flag_registration, error_flag=True, login=login, error_code=result_check_word[-1], theme=theme)
     return render_template("translator.html", flag_registration=flag_registration, login=login, theme=theme)
@@ -281,7 +281,21 @@ def toggle_theme():
     return redirect(request.referrer or url_for(hi_page))
 
 
-
+@app.route('/add_to_dictionary', methods=["POST"])
+def add_to_dict():
+    flag_registration = session.get("flag_registration")
+    login = session.get("login")
+    eng_word = request.form["word"]
+    theme = session.get("theme")
+    translation = request.form["translation"]
+    if flag_registration:
+        flag_word = for_db.add_word_user_dict(login, eng_word)
+        if flag_word:
+            return render_template("translator.html", flag_registration=flag_registration, flag_translated=True, translated_text=translation, theme=theme, login=login, word=eng_word, word_added=True)
+        else:
+            return render_template("translator.html", flag_registration=flag_registration, flag_translated=True,
+                                   translated_text=translation, theme=theme, login=login, word=eng_word, word_exists=True)
+    return redirect(url_for(translate()))
 
 
 
