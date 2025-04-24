@@ -10,12 +10,47 @@ import re
 from data.words import UserWord, Word
 from data.users import User
 from flask_sqlalchemy import SQLAlchemy
-
+import os
+import json
+import datetime
+import time
+import threading
 db = SQLAlchemy()
 
 
 app = Flask(__name__)
 app.secret_key = 'supersecretkey'
+
+
+def monitor_token():
+    while True:
+        if not os.path.exists(os.path.join(os.getcwd(), "Api", "aim_tokens", "aim_token_trans.json")):
+            Api.make_tokens.start_make_token()
+            time.sleep(10)
+        try:
+            path = os.path.join(os.getcwd(), "Api", "aim_tokens", "aim_token_trans.json")
+            with open(path, "r") as f:
+                obj = json.loads(f.read())
+                expire_str = obj["expiresAt"].split("T")
+                expire_date = expire_str[0].split("-")
+                expire_time = expire_str[1].split(":")
+                now = datetime.datetime.now()
+                year = int(expire_date[0])
+                month = int(expire_date[1])
+                day = int(expire_date[2])
+                h = int(expire_time[0])
+                m = int(expire_time[1]) - 1
+                expire_date = datetime.datetime(year=year, month=month, day=day, hour=h, minute=m)
+                time_delta = expire_date - now
+                time_delta = time_delta.total_seconds()
+                if time_delta < 300:
+                    Api.make_tokens.start_make_token(flag=True)
+
+
+        except Exception as e:
+            print("Ошибка при проверке токена:", e)
+        time.sleep(120)
+
 
 
 def check_word(word):
@@ -316,6 +351,7 @@ def add_to_dict():
 
 
 if __name__ == "__main__":
-    expire_at = Api.make_tokens.start_make_token()
+    #expire_at = Api.make_tokens.start_make_token()
+    threading.Thread(target=monitor_token, daemon=True).start()
     db_session.global_init("db/Main.db")
     app.run(port=8080, host="127.0.0.1")
