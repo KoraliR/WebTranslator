@@ -53,40 +53,61 @@ def add_word_to_db(lemma, ru):
     session.commit()
 
 
-def get_user_random_word_with_options(user_login, used_ids=None):
+def get_user_random_word_with_options(login, used_words=None):
     session = db_session.create_session()
+    user = session.query(User).filter(User.user == login).first()
 
-    user = session.query(User).filter(User.user == user_login).first()
     if not user or not user.user_words:
         return None
 
-    user_words_list = user.user_words.split(',')
+    user_word_list = user.user_words.strip(",").split(",")
+    user_word_list = [word for word in user_word_list if word]  # удаляем пустые
 
-    query = session.query(Word).filter(Word.eng.in_(user_words_list))
-    if used_ids:
-        query = query.filter(~Word.id.in_(used_ids))
-    random_word = query.order_by(func.random()).first()
+    if used_words:
+        user_word_list = [w for w in user_word_list if w not in used_words]
 
-    if not random_word:
+    if len(user_word_list) < 1:
         return None
 
-    correct_translation = random_word.ru
+    random_word_eng = random.choice(user_word_list)
+    word_obj = session.query(Word).filter(Word.eng == random_word_eng).first()
 
-    other_translations = session.query(Word).filter(Word.id != random_word.id).order_by(func.random()).limit(3).all()
-    other_translations = [w.ru for w in other_translations]
+    if not word_obj:
+        return None
 
+    correct_translation = word_obj.ru
+
+    # Получаем другие слова пользователя для опций
+    other_words = [w for w in user.user_words.strip(",").split(",") if w != random_word_eng]
+    other_word_objs = session.query(Word).filter(Word.eng.in_(other_words)).all()
+    other_translations = [w.ru for w in other_word_objs]
+
+    # Если других слов меньше трёх — досыпаем из всех слов, но исключаем текущий
+    if len(other_translations) < 3:
+        needed = 3 - len(other_translations)
+        extra_translations = (
+            session.query(Word)
+            .filter(~Word.eng.in_([random_word_eng] + other_words))
+            .order_by(func.random())
+            .limit(needed)
+            .all()
+        )
+        other_translations += [w.ru for w in extra_translations]
+
+    # Берём только 3 опции и мешаем с правильным
+    other_translations = other_translations[:3]
     options = [correct_translation] + other_translations
     random.shuffle(options)
 
     return {
-        'id': random_word.id,
-        'word': random_word.eng,
+        'id': word_obj.eng,
+        'word': word_obj.eng,
         'correct_translation': correct_translation,
         'options': options
     }
 
 
-<<<<<<< HEAD
+
 def get_user_words(user_id):
     db_sess = db_session.create_session()
 
@@ -116,7 +137,7 @@ def get_users_words(user_id):
 
     words = [uw.word for uw in user_words]
     return words
-=======
+
 def get_word_id(word):
     session = db_session.create_session()
     word_id = session.query(Word.id).filter(Word.eng == word).first()
@@ -126,18 +147,15 @@ def get_word_id(word):
 def add_word_user_dict(login, word):
     session = db_session.create_session()
     user = session.query(User).filter(User.user == login).first()
-    word_id = str(get_word_id(word)[0])
-    if user.users_words is None:
-        user.users_words = word_id + ";"
+    if user.user_words is None:
+        user.user_words = word + ","
     else:
-        user_list = user.users_words
-        user_list = user_list.split(";")[:-1]
-        if word_id in user_list:
+        user_list = user.user_words.split(",")[:-1]
+        if word in user_list:
             return False
         else:
-            user_list.append(word_id)
-            user_list = ";".join(user_list) + ";"
-            user.users_words = user_list
+            user_list.append(word)
+            user.user_words = ",".join(user_list) + ","
     session.commit()
     return True
->>>>>>> d6f463ed585a6fdc0cc4d020bff689982c91f483
+

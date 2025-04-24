@@ -170,19 +170,34 @@ def learning():
         return render_template("learning.html", not_logged_in=True, theme=theme)
 
     words_list = []
-    used_ids = set()
-    for _ in range(10):
-        word_data = for_db.get_user_random_word_with_options(login, used_ids)
-        if word_data:
-            used_ids.add(word_data['id'])
-            words_list.append(word_data)
+    used_words = set()
+
+    try:
+        while True:
+            word_data = for_db.get_user_random_word_with_options(login, used_words)
+            if word_data:
+                used_words.add(word_data['word'])  # добавляем eng, а не id
+                words_list.append(word_data)
+            else:
+                break  # больше нет слов
+    except Exception as e:
+        print(f"Ошибка при получении слов для заучивания: {e}")
+        return render_template("learning.html",
+                               words=[],
+                               flag_registration=flag_registration,
+                               login=login,
+                               theme=theme,
+                               not_logged_in=False,
+                               error_message="Произошла неизвестная ошибка. Попробуйте позже.")
 
     return render_template("learning.html",
                            words=words_list,
                            flag_registration=flag_registration,
                            login=login,
                            theme=theme,
-                           not_logged_in=False)
+                           not_logged_in=False,
+                           no_words=len(words_list) < 2)  # надо хотя бы 2 слова
+
 
 
 
