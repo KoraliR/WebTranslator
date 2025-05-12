@@ -86,8 +86,20 @@
       .start-button:hover {
         background-color: #2c6db6;
       }
+
+      
+      .image-container {
+          display: flex;
+          justify-content: center;
+          margin-top: 20px;
+          padding: 20px 50px
+      }
+      .illustration {
+          max-width: 250px;
+          height: auto;
+      }
     </style>
-  </head>
+  </head> 
   <body>
     <div class="header">
       <a href="/"><h1>Вокабулятор</h1></a>
@@ -98,22 +110,21 @@
         <form action="/learning" method="get" style="margin: 0;">
           <button class="learning-button" type="submit">Заучивание слов</button>
         </form>
-        {% if flag_registration %}
-          <a href="/account">
-            <button class="account-button" type="button">{{ login }}</button>
-          </a>
-        {% else %}
-          <form action="/log_in" method="get" style="margin: 0;">
-            <button class="auth1-button" type="submit">Войти</button>
-          </form>
-        {% endif %}
-        <form action="/toggle_theme" method="post" style="margin: 0;">
-          <button class="theme-toggle" type="submit" title="Сменить тему">
-            {% if theme == 'light' %}🌙{% else %}☀️{% endif %}
-          </button>
+        {% if current_user.is_authenticated %}
+        <a href="{{ url_for('account') }}">
+          <button class="account-button" type="button">{{ current_user.user }}</button>
+        </a>
+      {% else %}
+        <form action="{{ url_for('login') }}" method="get" style="margin: 0;">
+          <button class="auth1-button" type="submit">Войти</button>
         </form>
-      </div>
+      {% endif %}
+      
+      <form action="{{ url_for('toggle_theme') }}" method="post" style="margin: 0;">
+        <button class="theme-toggle" type="submit" title="Сменить тему">{% if theme == 'light' %}🌙{% else %}☀️{% endif %}</button>
+      </form>
     </div>
+  </div>
 
     <div class="content">
       {% block content %}
@@ -121,6 +132,13 @@
       <form action="/translate" method="get">
         <button class="start-button" type="submit">Начать</button>
       </form>
+      {% if request.path == '/' %}
+        {% block header_image %}
+        <div class="image-container">
+            <img src="{{ url_for('static', filename='img/image.png') }}" alt="English Book" class="illustration">
+        </div>
+        {% endblock %}
+      {% endif %} 
       {% endblock %}
     </div>
   </body>

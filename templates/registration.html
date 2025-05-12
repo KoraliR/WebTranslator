@@ -59,6 +59,29 @@
       font-weight: bold;
     }
 
+         /* Стили для flash-сообщений */
+         .alert {
+        margin-top: 20px;
+        padding: 12px;
+        border-radius: 8px;
+        font-weight: bold;
+    }
+
+    .alert-error {
+        color: white;
+        background-color: #d32f2f; /* Красный для ошибок */
+    }
+
+    .alert-success {
+        color: white;
+        background-color: #4CAF50; /* Зелёный для успеха */
+    }
+
+    .alert-warning {
+        color: black;
+        background-color: #FFC107; /* Жёлтый для предупреждений */
+    }
+
     /* Theme Variables */
     :root {
       --text-color: #000000;
@@ -85,32 +108,32 @@
     }
   </style>
 
-  <div class="auth-container">
-    <h2 style="font-size: 28px; margin-bottom: 20px;">Регистрация</h2>
-
-    <form action="/registration" method="post">
-      <input type="text" name="login" placeholder="Логин..." required class="login-input">
-      <input type="password" name="password" placeholder="Пароль..." required class="password-input">
-      <input type="password" name="password1" placeholder="Повторите пароль..." required class="confirm-password-input">
-      <button type="submit" class="reg-button">Зарегистрироваться</button>
-    </form>
-
-    {% if error_flag %}
-      <div class="error-message">
-        {% if error_code == "taken" %}
-            Пользователь с таким логином уже существует.
-        {% elif error_code == "too_short_log" %}
-            Логин должен содержать минимум 2 символа.
-        {% elif error_code == "too_short" %}
-            Пароль должен содержать не менее 8 символов.
-        {% elif error_code == "no_digit" %}
-            В пароле должны быть использована минимум 1 цифра.
-        {% elif error_code == "no_alpha" %}
-            В пароле должна быть использована минимум одна буква.
-        {% elif error_code == "diffrent" %}
-            Пароли не совпадают.
-        {% endif %}
-      </div>
-    {% endif %}
-  </div>
+<div class="auth-container">
+  <h2 style="font-size: 28px; margin-bottom: 20px;">Регистрация</h2>
+  <form method="POST">
+    {{ form.hidden_tag() }}
+    <p>
+    {{ form.user.label }}
+    {{ form.user(class="login-input") }}
+    </p>
+    <p>
+      {{ form.password.label }}
+      {{ form.password(class="password-input", type='password') }}
+      </p>
+      <p>
+        {{ form.password2.label }}
+        {{ form.password2(class="confirm-password-input", type='password') }}
+        </p>
+      <p>{{ form.remember_me() }} {{ form.remember_me.label }}</p>
+      <p>{{ form.submit(type="submit", class="reg-button") }}</p>
+      {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+              {% for category, message in messages %}
+                  <div class="alert alert-{{ category }}">
+                      {{ message }}
+                  </div>
+              {% endfor %}
+          {% endif %}
+      {% endwith %}
+  </form>
 {% endblock %}

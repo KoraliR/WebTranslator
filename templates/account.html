@@ -5,8 +5,8 @@
 <div class="profile-container">
   <div class="top-bar">
     <div class="user-info-box">
-      <p>🆔 ID: {{ user_id }}</p>
-      <p>👤 Пользователь: {{ login }}</p>
+      <p>🆔 ID: {{ current_user.id }}</p>
+      <p>👤 Пользователь: {{ current_user.user }}</p>
     </div>
     <div class="actions">
       <a href="/logout" class="btn">Выйти</a>

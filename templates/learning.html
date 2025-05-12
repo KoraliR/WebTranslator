@@ -4,9 +4,7 @@
 
 {% block content %}
 <div class="game-container">
-    {% if not_logged_in %}
-        <div class="message">Сначала войдите в аккаунт.</div>
-    {% elif words is not defined %}
+    {% if words is not defined %}
         <div class="message">Произошла неизвестная ошибка.</div>
     {% elif words|length < 4 %}
         <div class="message">Недостаточно слов для игры.</div>

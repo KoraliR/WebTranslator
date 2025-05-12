@@ -145,7 +145,7 @@
             Слово: {{ word}} <br>
           Перевод: {{ translated_text }}
         </div>
-          {% if flag_registration %}
+          {% if current_user.is_authenticated %}
         <form action="/add_to_dictionary" method="post" style="margin-top: 20px;">
           <input type="hidden" name="word" value="{{ word }}">
           <input type="hidden" name="translation" value="{{ translated_text }}">
@@ -153,15 +153,6 @@
             Добавить в словарь
           </button>
         </form>
-          {% else %}
-              <form action="/registration" method="get" style="margin-top: 20px;">
-          <input type="hidden" name="word" value="{{ word }}">
-          <input type="hidden" name="translation" value="{{ translated_text }}">
-          <button type="submit" class="add-button">
-            Добавить в словарь
-          </button>
-              </form>>
-
       {% endif %}
   {% endif %}
   </div>

@@ -59,15 +59,6 @@
       color: white;
     }
 
-    .error-message {
-      margin-top: 20px;
-      color: white;
-      background-color: #d32f2f;
-      padding: 12px;
-      border-radius: 8px;
-      font-weight: bold;
-    }
-
     .add-button {
       background-color: #2196F3;
       color: white;
@@ -83,7 +74,29 @@
       background-color: #1976D2;
     }
 
-    /* Theme Variables */
+        /* Стили для flash-сообщений */
+    .alert {
+        margin-top: 20px;
+        padding: 12px;
+        border-radius: 8px;
+        font-weight: bold;
+    }
+
+    .alert-error {
+        color: white;
+        background-color: #d32f2f; /* Красный для ошибок */
+    }
+
+    .alert-success {
+        color: white;
+        background-color: #4CAF50; /* Зелёный для успеха */
+    }
+
+    .alert-warning {
+        color: black;
+        background-color: #FFC107; /* Жёлтый для предупреждений */
+    }
+
     :root {
       --text-color: #000000;
       --card-bg: #ffffff;
@@ -108,25 +121,40 @@
       --translated-text: #80cbc4;
     }
   </style>
+<div class="auth-container">
+  <h2 style="font-size: 28px; margin-bottom: 20px;">Вход в систему</h2>
 
-  <div class="auth-container">
-    <h2 style="font-size: 28px; margin-bottom: 20px;">Вход в систему</h2>
-
-    <form action="/log_in" method="post">
-      <input type="text" name="login" placeholder="Логин..." required class="login-input">
-      <input type="password" name="password" placeholder="Пароль..." required class="password-input">
-      <button type="submit" class="auth-button">Войти</button>
-      <button type="button" class="reg-button" onclick="window.location.href='/registration'">Зарегистрироваться</button>
-    </form>
-
-    {% if error_flag %}
-      <div class="error-message">
-        {% if error_code == "unexist" %}
-          Пользователя с таким логином не существует.
-        {% elif error_code == "uncor_pass" %}
-          Неверный пароль!
-        {% endif %}
+  <form method="POST">
+    {{ form.hidden_tag() }}
+    <p>
+    {{ form.user.label }}
+    {{ form.user(class="password-input") }}
+    {% for error in form.user.errors %}
+      <div class="alert alert-danger" role="alert">
+          {{ error }}
       </div>
-    {% endif %}
-  </div>
+    {% endfor %}
+    </p>
+    <p>
+      {{ form.password.label }}
+      {{ form.password(class="password-input", type='password') }}
+      {% for error in form.password.errors %}
+        <div class="alert alert-danger" role="alert">
+            {{ error }}
+        </div>
+      {% endfor %}
+      </p>
+      <p>{{ form.remember_me() }} {{ form.remember_me.label }}</p>
+      <p>{{ form.submit(type="submit", class="auth-button") }}</p>
+      <p>{{ form.register_btn(type="submit", class="reg-button") }}</p>
+      {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+              {% for category, message in messages %}
+                  <div class="alert alert-{{ category }}">
+                      {{ message }}
+                  </div>
+              {% endfor %}
+          {% endif %}
+      {% endwith %}
+  </form>
 {% endblock %}
